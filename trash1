@@ -1,0 +1,41 @@
+BackgroundWorker ActionScheduler;
+        private SynchronizationContext ctx;
+        public MainWindow()
+        {
+            InitializeComponent();
+            this.WindowState = WindowState.Maximized;
+            this.ShowInTaskbar = false;
+            this.Topmost = true;
+            ctx = SynchronizationContext.Current;   
+            ActionScheduler = new BackgroundWorker();
+            ActionScheduler.DoWork += ActionScheduler_DoWork;
+            ActionScheduler.RunWorkerAsync();
+        }
+
+        private void ActionScheduler_DoWork(object sender, DoWorkEventArgs e)
+        {
+            DateTime start = DateTime.Now;
+            while (true) 
+            { 
+                if((DateTime.Now - start).TotalSeconds > 10)
+                {
+                    
+                    ctx.Post((o) =>
+                    {
+                        Pict.Visibility = Visibility.Visible;
+                        Storyboard myStoryboard = this.canvas.FindResource("myStoryboard") as Storyboard;
+                        myStoryboard.Begin();
+
+                    }, null);
+                    Thread.Sleep(5000);
+                    ctx.Post((o) =>
+                    {
+                        Pict.Visibility = Visibility.Hidden;
+                        txtWarning.Visibility = Visibility.Hidden;
+                    }, null);
+                    start = DateTime.Now;
+                    
+                }
+                Thread.Sleep(200);
+            }
+        }
