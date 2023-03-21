@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:uc="clr-namespace:MoveControl.UserControls"
+             xmlns:vm="clr-namespace:MoveControl.ViewModels" 
+             x:Class="MoveControl.MainPage">
+    <ContentPage.BindingContext>
+        <vm:vmCrossController/>
+    </ContentPage.BindingContext>
+    <Grid RowDefinitions="0.1*, 0.8*, 0.1*">
+        <Grid ColumnDefinitions="*,*">
+            <Label Text="{Binding Global.LMotRequested}"
+                   Grid.Column="0"
+                   HorizontalTextAlignment="Center"/>
+            <Label Text="{Binding Global.RMotRequested}"
+                   Grid.Column="1"
+                   HorizontalTextAlignment="Center"/>
+        </Grid>
+        <uc:CrossController Active="True"
+                            XPosition="{Binding Global.ControllerX, Mode=TwoWay}"
+                            YPosition="{Binding Global.ControllerY, Mode=TwoWay}"
+                            Grid.Row="1">
+        </uc:CrossController>
+
+
+        <Button Grid.Row="2"
+                x:Name="CounterBtn"
+                Text="Click me"
+                SemanticProperties.Hint="Counts the number of times you click"
+                Clicked="OnCounterClicked"
+                HorizontalOptions="Center" />
+
+    </Grid>
+
+
+</ContentPage>
