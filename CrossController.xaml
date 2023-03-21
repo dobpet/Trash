@@ -1,0 +1,57 @@
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			 x:Class="MoveControl.UserControls.CrossController"
+			 xmlns:uc="clr-namespace:MoveControl.UserControls"
+			 BackgroundColor="Transparent"
+             x:Name="ucCrossController">
+	<ContentView.Resources>
+		<uc:CrossControllerDrawable x:Key="CrossCtrlBackground" />
+	</ContentView.Resources>
+	<ContentView.Content>
+        <AbsoluteLayout Padding="0"
+						Margin="0">
+            <GraphicsView Drawable="{StaticResource CrossCtrlBackground}"
+						  Margin="0"
+						  AbsoluteLayout.LayoutFlags="All"
+						  AbsoluteLayout.LayoutBounds="0,0,1,1"/>
+            <Border x:Name="ControllerBorder"
+					BackgroundColor="Transparent"
+					StrokeThickness="15"
+					ZIndex="3"
+					AbsoluteLayout.LayoutFlags="SizeProportional"
+					AbsoluteLayout.LayoutBounds="0,0,1,1">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="20,20,20,20" />
+                </Border.StrokeShape>
+                <Border.Stroke>
+                    <LinearGradientBrush EndPoint="1,1">
+                        <GradientStop Color="{StaticResource PanelDarkColor}"
+									  Offset="0.1" />
+                        <GradientStop Color="{StaticResource PanelLightColor}"
+									  Offset="1.0" />
+                    </LinearGradientBrush>
+                </Border.Stroke>
+
+                <Frame x:Name="ctrl"
+                       WidthRequest="50"
+                       HeightRequest="50"
+						   BackgroundColor="Black"
+						   VerticalOptions="Center"
+						   HorizontalOptions="Center"
+						   CornerRadius="20">
+                    <Frame.Background>
+                        <RadialGradientBrush>
+                            <GradientStop Color="{Binding Source={x:Reference ucCrossController}, Path=ButtonColor, FallbackValue='Red'}"
+                                          Offset="0.1" />
+                            <GradientStop Color="Black"
+                                          Offset="1.0" />
+                        </RadialGradientBrush>
+                    </Frame.Background>
+                </Frame>
+
+
+            </Border>
+
+        </AbsoluteLayout>
+    </ContentView.Content>
+</ContentView>
