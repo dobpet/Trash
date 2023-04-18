@@ -1,0 +1,32 @@
+        private void SendUDTPacket()
+        {
+            Socket sock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+
+            IPAddress serverAddr = IPAddress.Parse("127.0.0.1");
+
+            IPEndPoint endPoint = new IPEndPoint(serverAddr, 690);
+
+            string text = "hello Hell!";
+
+            byte[] send_buffer = Encoding.ASCII.GetBytes(text);
+            sock.SendTo(send_buffer, endPoint);
+        }
+        private void SendTCPPacket(String server, String message)
+        {
+
+            Int32 port = 502;
+            TcpClient client = new TcpClient(server, port);
+
+            Byte[] data = System.Text.Encoding.ASCII.GetBytes(message);
+
+
+            NetworkStream stream = client.GetStream();
+
+
+            stream.Write(data, 0, data.Length);
+
+            stream.Close();
+            client.Close();
+
+
+        }
