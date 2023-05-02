@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Sockets;
+using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -29,21 +31,84 @@ namespace MoveControl.Model
         {
             sender = new Task(() =>
             {
-                Thread.Sleep(100);
+                while (true) {
+                    //SendTCPPacket("127.0.0.1", "BUZ:0:");
+                    string msg = "CM1:";
+                    msg = msg + LMotRequested.ToString() + ":" + RMotRequested.ToString();
+                    msg = msg + ":" + Servo1.ToString() + ":0:0:0";
+                    //SendTCPPacket("127.0.0.1", msg);
+                    SendTCPPacket(IP_Destination, msg);
+                    Thread.Sleep(1000);
+                }
             });
 
             sender.Start();
         }
 
-        
-
-        bool communicationPossible;
-        public bool CommunicationPossible
+        private void SendUDTPacket()
         {
-            get => communicationPossible;
-            set { SetProperty(ref communicationPossible, value); }
+            Socket sock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+
+            IPAddress serverAddr = IPAddress.Parse("127.0.0.1");
+
+            IPEndPoint endPoint = new IPEndPoint(serverAddr, 690);
+
+            string text = "hello Hell!";
+
+            byte[] send_buffer = Encoding.ASCII.GetBytes(text);
+            sock.SendTo(send_buffer, endPoint);
+        }
+        private void SendTCPPacket(String server, String message)
+        {
+
+            Int32 port = 502;
+            try
+            {
+                TcpClient client = new TcpClient(server, port);
+
+                Byte[] data = System.Text.Encoding.ASCII.GetBytes(message);
+
+
+                NetworkStream stream = client.GetStream();
+
+            
+                stream.Write(data, 0, data.Length);
+
+                CommunicationPossible = "Communicated";
+                CommunicationColor = Colors.Green;
+
+                stream.Close();
+                client.Close();
+            }
+            catch
+            {
+                CommunicationPossible = "Communication Error"; 
+                CommunicationColor = Colors.Red;
+            }
+
+
         }
 
+        string _IP_Destination;
+        public string IP_Destination
+        { 
+            get => _IP_Destination;
+            set { SetProperty(ref _IP_Destination, value); }
+        }
+
+        string _communicationPossible;
+        public string CommunicationPossible
+        {
+            get => _communicationPossible;
+            set { SetProperty(ref _communicationPossible, value); }
+        }
+
+        Color _communicationColor;
+        public Color CommunicationColor
+        {
+            get => _communicationColor;
+            set { SetProperty(ref _communicationColor, value); }
+        }
 
         private sbyte _ControllerX;
         public sbyte ControllerX
@@ -64,6 +129,26 @@ namespace MoveControl.Model
             {
                 SetProperty(ref _ControllerY, value);
                 CalculateMotorPower();
+            }
+        }
+
+        private sbyte _Servo1;
+        public sbyte Servo1
+        {
+            get => _Servo1;
+            set
+            {
+                SetProperty(ref _Servo1, value);
+            }
+        }
+
+        private sbyte _Servo2;
+        public sbyte Servo2
+        {
+            get => _Servo2;
+            set
+            {
+                SetProperty(ref _Servo2, value);
             }
         }
 
@@ -107,6 +192,9 @@ namespace MoveControl.Model
             double vector = 0;
 
             vector = Math.Sqrt( Math.Pow(x, 2) + Math.Pow(y,2));
+            if (vector > 100) vector = 100;
+            if (vector < -100) vector = -100;
+
             int ParthAngle = 0;
             int Maximum = 0;
 
@@ -141,33 +229,41 @@ namespace MoveControl.Model
             }
             else if (angle < 135)
             {
-                LMotRequested = 3;
-                RMotRequested = 3;
+                RMotRequested = (sbyte)vector;
+                Maximum = (int)Scale(ParthAngle, 0, 45, 100, 50);
+                LMotRequested = (sbyte)Scale((int)vector, 0, 100, 0, Maximum);
             }
             else if (angle < 180)
             {
-                LMotRequested = 4;
-                RMotRequested = 4;
+                RMotRequested = (sbyte)vector;
+                Maximum = (int)Scale(ParthAngle, 0, 45, 50, -100);
+                LMotRequested = (sbyte)Scale((int)vector, 0, 100, 0, Maximum);
             }
             else if (angle < 225)
             {
-                LMotRequested = 5;
-                RMotRequested = 5;
+                Maximum = (int)Scale(ParthAngle, 0, 45, -100, -50);
+                LMotRequested = (sbyte)Scale((int)vector, 0, 100, 0, Maximum);
+                Maximum = (int)Scale(ParthAngle, 0, 45, 100, -100);
+                RMotRequested = (sbyte)Scale((int)vector, 0, 100, 0, Maximum);
             }
             else if (angle < 270)
             {
-                LMotRequested = 6;
-                RMotRequested = 6;
+                RMotRequested = (sbyte)((-1) * vector);
+                Maximum = (int)Scale(ParthAngle, 0, 45, -50, -100);
+                LMotRequested = (sbyte)Scale((int)vector, 0, 100, 0, Maximum);
             }
             else if (angle < 315)
             {
-                LMotRequested = 7;
-                RMotRequested = 7;
+                LMotRequested = (sbyte)((-1) * vector);
+                Maximum = (int)Scale(ParthAngle, 0, 45, -100, -50);
+                RMotRequested = (sbyte)Scale((int)vector, 0, 100, 0, Maximum);
             }
             else if(angle < 360)
             {
-                LMotRequested = 8;
-                RMotRequested = 8;
+                Maximum = (int)Scale(ParthAngle, 0, 45, -100, 100);
+                LMotRequested = (sbyte)Scale((int)vector, 0, 100, 0, Maximum);
+                Maximum = (int)Scale(ParthAngle, 0, 45, -50, -100);
+                RMotRequested = (sbyte)Scale((int)vector, 0, 100, 0, Maximum);
             }
 
         }
