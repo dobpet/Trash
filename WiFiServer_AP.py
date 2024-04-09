@@ -3,6 +3,7 @@ import socket
 import time
 import uasyncio
 import io
+from mqtt_as_control import MQTT
 
 
 class WebServer:
@@ -64,11 +65,13 @@ class WebServer:
 
     __max_wait = 10
     
-    def __init__(self, SavedParameters, StartConsumeEl, MotorRight, MotorLeft):
+    def __init__(self, SavedParameters, StartConsumeEl, MotorRight, MotorLeft, THS):
         self.SavedParameters = SavedParameters
         self.StartConsumeEl = StartConsumeEl
         self.MotorRight = MotorRight
         self.MotorLeft = MotorLeft
+        
+        self.THS = THS
         
         print("in process")
         
@@ -101,6 +104,13 @@ class WebServer:
         self.__com = uasyncio.create_task(uasyncio.start_server(self.Communication, "0.0.0.0", 80))
         self.__com2 = uasyncio.create_task(uasyncio.start_server(self.Communication2, "0.0.0.0", 502))
         self.__recon = uasyncio.create_task(self.Reconnect())
+        
+        MQTT_URL = 'f6c47dd12ec24c7ba002cfb8bdae437b.s1.eu.hivemq.cloud'
+        MQTT_User = 'MyCar'
+        MQTT_Pwd = 'Car2024Car'
+        MQTT_Enable = True
+        self.MQTT_inst = MQTT(MQTT_Enable, MQTT_URL, MQTT_User, MQTT_Pwd, self.wlan, self.THS, 24, 30)
+        
 
     def AP_Activate(self):
         self.ssid_ap = self.SavedParameters.dictionary['AP_SSID']

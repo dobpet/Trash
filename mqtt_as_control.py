@@ -9,6 +9,8 @@ import utime
 #from machine import RTC
 from mqtt_as import MQTTClient, config
 import math
+from SHT40 import *
+
 
 # if sys.implementation._machine == 'Raspberry Pi Pico W with RP2040':
 #     import network       # https://docs.micropython.org/en/latest/library/network.WLAN.html#network.WLAN.status
@@ -34,7 +36,8 @@ import math
         
 class MQTT():
     Net = None
-    Modbus = None
+    Temperature = None
+    Humidity = None
     MQTT = None
     MQTT_task = None
     MQTT_Connected = False
@@ -79,24 +82,23 @@ class MQTT():
         while not self.MQTT.isconnected():
             await uasyncio.sleep_ms(10)
         await uasyncio.sleep_ms(1000)
-        await self.MQTT.subscribe('Inverter/EnableControl', 1)
-        await self.MQTT.subscribe('Inverter/NominalPV', 1)
-        Last_Inverter_SOC = None
-        #Last_Inverter_SOC_TS = utime.ticks_ms()
+#         await self.MQTT.subscribe('Inverter/EnableControl', 1)
+#         await self.MQTT.subscribe('Inverter/NominalPV', 1)
+        Last_Temperature = None
+        Last_Humidity = None
       
         while True:  
             if self.MQTT_Connected:
-                #SOC
-                if self.Inverter == 'GoodWe':
-                    bf = self.Modbus[0].scaled()  
-                elif self.Inverter == 'Growatt':
-                    bf = self.Modbus[0].scaled()
-                else:
-                    bt = 0
-                if Last_Inverter_SOC == None or math.fabs(Last_Inverter_SOC - bf) > 1: # or utime.ticks_diff(utime.ticks_ms(), Last_Inverter_SOC_TS) > 60000:
-                    await self.MQTT.publish('Inverter/Inverter_SOC', '{0:3.2f}'.format(bf), retain = 1, qos=1)
-                    Last_Inverter_SOC = bf
-                    #Last_Inverter_SOC_TS = utime.ticks_ms()
+                ( self.Humidity, self.Temperature ) = self.THS.Measure(SHT4X_Meas_HighP_NoHeat)
+                bf = self.Temperature
+                if Last_Temperature == None or math.fabs(Last_Temperature - bf) > 1: 
+                    await self.MQTT.publish('Car/Temperature', '{0:3.2f}'.format(bf), retain = 1, qos=1)
+                    Last_Temperature = bf
+                    
+                bf = self.Humidity
+                if Last_Humidity == None or math.fabs(Last_Humidity - bf) > 1: 
+                    await self.MQTT.publish('Car/Humidity', '{0:3.2f}'.format(bf), retain = 1, qos=1)
+                    Last_Humidity = bf
               
                 if (self.Net.status() != 3) or (self.MQTT_Enable == False):
                     print(" -> MQTT close due to network error / dont Enable")
@@ -113,12 +115,14 @@ class MQTT():
             await uasyncio.sleep_ms(1000)
                     
 
-    def __init__(self, MQTT_Enable, MQTT_Url, MQTT_User, MQTT_Pwd, Net, Modbus, Inverter):
+    def __init__(self, MQTT_Enable, MQTT_Url, MQTT_User, MQTT_Pwd, Net, THS, Temperature, Humidity):
         self.MQTT_Enable = MQTT_Enable
-        self.Inverter = Inverter
+        self.Temperature = Temperature
+        self.THS = THS 
+        
+        self.Humidity = Humidity
         if sys.implementation._machine == 'Raspberry Pi Pico W with RP2040':
             self.Net = Net
-            self.Modbus = Modbus
             print(" -> Configuring MQTT client ...          ", end='')
             MQTTClient.DEBUG = True
             broker = MQTT_Url

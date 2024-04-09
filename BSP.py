@@ -8,6 +8,7 @@ from WiFiServer_AP import WebServer
 from settings import param
 from ClassServo import Servo
 import ntptime
+from SHT40 import *
     
     
 class BSP():
@@ -332,7 +333,17 @@ class BSP():
             rect(self.OLED, 0, 57, 128, 7)
             self.OLED.show()
             print("done")
-
+        if 0x44 in int_i2c_dev:
+            print("       -SHT40 found on address 44h")
+            print("       -initializing SH40 ...        ",end = "" )
+            self.THS = SHT40(self.SysI2C)
+            ( humidity, temp ) = self.THS.Measure(SHT4X_Meas_HighP_NoHeat)
+            print('done')
+            print('       -SHT40 Serial Number : {0:08X}'.format(self.THS.SerialNumber))
+            print('       -Temperature         : {0:6.2f} °C'.format(temp))
+            print('       -Relative Humidity   : {0:6.2f} %'.format(humidity))
+        else:
+            print("       -SHT40 not found on address 44h")
         
         self.Time = RTC()
         
@@ -349,7 +360,7 @@ class BSP():
         print("done")
         
         print(" -> Web server initialization ...        ", end = '')
-        self.__myWebServer = WebServer(self.SavedParameters, self.StartConsumeEl, self.MotorRight, self.MotorLeft)
+        self.__myWebServer = WebServer(self.SavedParameters, self.StartConsumeEl, self.MotorRight, self.MotorLeft, self.THS)
         print("                                         done")
         if self.__myWebServer.wlan.status() != 3:
             print('       - network connection failed')
