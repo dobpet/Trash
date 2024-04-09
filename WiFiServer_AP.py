@@ -105,9 +105,9 @@ class WebServer:
         self.__com2 = uasyncio.create_task(uasyncio.start_server(self.Communication2, "0.0.0.0", 502))
         self.__recon = uasyncio.create_task(self.Reconnect())
         
-        MQTT_URL = 'f6c47dd12ec24c7ba002cfb8bdae437b.s1.eu.hivemq.cloud'
+        MQTT_URL = 'xxxxxxxxx.s1.eu.hivemq.cloud'
         MQTT_User = 'MyCar'
-        MQTT_Pwd = 'Car2024Car'
+        MQTT_Pwd = 'CarxxxxCar'
         MQTT_Enable = True
         self.MQTT_inst = MQTT(MQTT_Enable, MQTT_URL, MQTT_User, MQTT_Pwd, self.wlan, self.THS, 24, 30)
         
